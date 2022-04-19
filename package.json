@@ -5,7 +5,7 @@
   "private": true,
   "main": "index.ts",
   "dependencies": {
-    "browserify-middleware": "^5.0.2",
+    "browserify-middleware": "^8.1.1",
     "express": "^4.17.3",
     "node-fetch": "^2.6.7",
     "twilio": "^3.76.1",

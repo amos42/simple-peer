@@ -34,7 +34,7 @@ const ICE_SERVERS = [
 ];
 
 const TWILIO_ACCOUNT = 'AC6cf7c3f97850bec93ca950e15d934ffa';
-const TWILIO_AUTH_TOKEN = '0f52889975cb7eb99d7a5e084ecacad6';
+const TWILIO_AUTH_TOKEN = '58b41c3a467909dc7b4a3827de7ecba4';
 
 
 module.exports = {
