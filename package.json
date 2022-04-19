@@ -1,0 +1,14 @@
+{
+  "name": "simple-peer",
+  "version": "0.1.0",
+  "description": "This project presents a few example applications using node-webrtc.",
+  "private": true,
+  "main": "index.ts",
+  "dependencies": {
+    "browserify-middleware": "^5.0.2",
+    "express": "^4.17.3",
+    "node-fetch": "^2.6.7",
+    "twilio": "^3.76.1",
+    "wrtc": "^0.4.7"
+  }
+}
