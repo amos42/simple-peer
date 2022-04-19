@@ -41,13 +41,15 @@ app.post('/connect', async ({ body }, res) =>
 {
     console.log('start server');
 
-    const client = require('twilio')(wrtcConstants.TWILIO_ACCOUNT, wrtcConstants.TWILIO_AUTH_TOKEN);
-    const response = await client.tokens.create();    
     let iceServers = [
         { urls: 'stun:stun.l.google.com:19302' }
     ];
-    // iceServers = response.iceServers;
-    // iceServers = [];
+    iceServers = [];
+
+    const client = require('twilio')(wrtcConstants.TWILIO_ACCOUNT, wrtcConstants.TWILIO_AUTH_TOKEN);
+    const response = await client.tokens.create();    
+    iceServers = response.iceServers;
+    
     console.log('iceServers:');
     console.log(JSON.stringify(iceServers));
 

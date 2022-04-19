@@ -7,6 +7,11 @@ let imageChannel;
 let icecandidate;
 
 (async () => {
+    let iceServers = [
+        { urls: "stun:stun.l.google.com:19302" }
+    ];
+    iceServers = [];
+
     const twilioUrl = `https://api.twilio.com/2010-04-01/Accounts/${wrtcConstants.TWILIO_ACCOUNT}/Tokens.json`;
     const response0 = await fetch(twilioUrl, {
     method: 'POST',
@@ -15,11 +20,8 @@ let icecandidate;
     }
     });
     const twilioData = await response0.json();
-    let iceServers = [
-        { urls: "stun:stun.l.google.com:19302" }
-    ];
-    // iceServers = twilioData.ice_servers;
-    // iceServers = [];
+    iceServers = twilioData.ice_servers;
+
     console.log(iceServers);
 
     this.peer = new RTCPeerConnection({ iceServers: iceServers });
