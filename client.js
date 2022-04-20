@@ -25,8 +25,9 @@ let icecandidate;
     console.log(iceServers);
 
     this.peer = new RTCPeerConnection({ iceServers: iceServers });
+    this.peer.onnegotiationneeded = initChannel.bind(this);
     this.peer.onicecandidate  = async function(event) {
-        console.log(event);
+        console.log('ice candidate');
         if (event.candidate) {
             // event.candidate가 존재하면 원격 유저에게 candidate를 전달합니다.
             const res = await fetch("/icecandidate", { 
@@ -37,11 +38,16 @@ let icecandidate;
                 body: JSON.stringify({icecandidate: event.candidate}),
             }).then(res => res.json());
             icecandidate = JSON.stringify(event.candidate);
+            console.log('>>> sdp:');
+            console.log(res);
+            // this.peer.setRemoteDescription(new RTCSessionDescription(res.sdp));
         } else {
             // 모든 ICE candidate가 원격 유저에게 전달된 조건에서 실행됩니다.
             // candidate = null
         }        
-    };
+    }.bind(this);
+
+
     imageChannel = this.peer.createDataChannel("imageChannel");
 
     imageChannel.onmessage = ({ data }) => 
@@ -57,18 +63,22 @@ let icecandidate;
 
     imageChannel.onopen = () => imageChannel.send(imageData);// Data channel opened, start sending data.
 
-    this.peer.onnegotiationneeded = initChannel.bind(this);
 
     const btn = document.getElementById('button');
     btn.addEventListener('click', click.bind(this));
+
 })();
 
 
 async function initChannel()
 {
+    console.log('start negotiate...');
+
+    console.log('create offer.');
     const offer = await this.peer.createOffer();
     await this.peer.setLocalDescription(offer);
 
+    console.log('send peer description.');
     // Send offer and fetch answer from the server
     const { sdp } = await fetch("/connect", { 
         headers: {
@@ -78,7 +88,7 @@ async function initChannel()
         body: JSON.stringify({ sdp: this.peer.localDescription, icecandidate: icecandidate }),
     }).then(res => res.json());
 
-console.log(JSON.stringify({ sdp: this.peer.localDescription, icecandidate: icecandidate }));
+    console.log('set remote description.');
     this.peer.setRemoteDescription(new RTCSessionDescription(sdp));
 }
 

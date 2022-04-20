@@ -7,6 +7,7 @@ const bodyParser = require('body-parser');
 const browserify = require('browserify-middleware');
 
 const app = express();
+let iceServers = [];
 let peer;
 let icecandidate;
 
@@ -28,6 +29,21 @@ let icecandidate;
      channel.send("Hi from server");
  }
 
+
+ (async () => {
+    iceServers = [
+        { urls: 'stun:stun.l.google.com:19302' }
+    ];
+
+    const client = require('twilio')(wrtcConstants.TWILIO_ACCOUNT, wrtcConstants.TWILIO_AUTH_TOKEN);
+    const response = await client.tokens.create();    
+    iceServers = response.iceServers;
+})();
+
+console.log('iceServers:');
+console.log(JSON.stringify(iceServers));
+
+
 app.use(express.static(path.resolve(__dirname, "public")))
     .use(bodyParser.json())
     .use(bodyParser.urlencoded({ extended: true }));
@@ -41,23 +57,16 @@ app.post('/connect', async ({ body }, res) =>
 {
     console.log('start server');
 
-    let iceServers = [
-        { urls: 'stun:stun.l.google.com:19302' }
-    ];
-    iceServers = [];
-
-    const client = require('twilio')(wrtcConstants.TWILIO_ACCOUNT, wrtcConstants.TWILIO_AUTH_TOKEN);
-    const response = await client.tokens.create();    
-    iceServers = response.iceServers;
-    
-    console.log('iceServers:');
-    console.log(JSON.stringify(iceServers));
-
     peer = new webrtc.RTCPeerConnection({
         iceServers: iceServers
     });
+    // peer.onnegotiationneeded = function() {
+    //     if (icecandidate) {
+    //         peer.addIceCandidate(icecandidate);
+    //     }
+    // }
     peer.onicecandidate  = function(event) {
-        console.log(event);
+        // console.log(event);
         if (event.candidate) {
             // event.candidate가 존재하면 원격 유저에게 candidate를 전달합니다.
         } else {
@@ -68,15 +77,25 @@ app.post('/connect', async ({ body }, res) =>
     console.log('Connecting to client...');
     peer.ondatachannel = handleChannel;
 
-    console.log(JSON.stringify(body));
+    // console.log(JSON.stringify(body));
     await peer.setRemoteDescription(new webrtc.RTCSessionDescription(body.sdp));
     await peer.setLocalDescription(await peer.createAnswer());
-    if (body.icecandidate) {
-        peer.addIceCandidate(body.icecandidate);
-    }
-    if (icecandidate) {
-        peer.addIceCandidate(icecandidate);
-    }
+    
+    // if (body.icecandidate) {
+    //     await peer.addIceCandidate(body.icecandidate);
+    // }
+    // if (icecandidate) {
+    //     await peer.addIceCandidate(icecandidate);
+    // }
+
+    console.log('>>> desc 1 :');
+    console.log(peer.localDescription);
+
+    const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+    await sleep(1000);
+
+    console.log('>>> desc 2 :');
+    console.log(peer.localDescription);
 
     return res.json({ sdp: peer.localDescription });
 });
@@ -84,13 +103,14 @@ app.post('/connect', async ({ body }, res) =>
 app.post('/icecandidate', async ({ body }, res) =>
 {
     console.log('ice candicate');
-    console.log(JSON.stringify(body));
-    console.log(peer);
+    // console.log(JSON.stringify(body));
     if (peer) {
         await peer.addIceCandidate(body.icecandidate)
     }
     icecandidate = body.icecandidate;
-    return res.json(body);
+    console.log('>>> desc ICE :');
+    console.log(peer.localDescription);
+    return res.json({sdp: peer.localDescription});
 });
 
 app.listen(3000);
